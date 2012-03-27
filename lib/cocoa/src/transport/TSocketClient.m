@@ -30,35 +30,35 @@
 - (id) initWithHostname: (NSString *) hostname
                    port: (int) port
 {
-	NSInputStream * inputStream = NULL;
-	NSOutputStream * outputStream = NULL;
-	CFReadStreamRef readStream = NULL;
-	CFWriteStreamRef writeStream = NULL;
-	CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, (bridge_stub CFStringRef)hostname, port, &readStream, &writeStream);
-	if (readStream && writeStream) {
-		CFReadStreamSetProperty(readStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
-		CFWriteStreamSetProperty(writeStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
+    NSInputStream * inputStream = NULL;
+    NSOutputStream * outputStream = NULL;
+    CFReadStreamRef readStream = NULL;
+    CFWriteStreamRef writeStream = NULL;
+    CFStreamCreatePairWithSocketToHost(kCFAllocatorDefault, (bridge_stub CFStringRef)hostname, port, &readStream, &writeStream);
+    if (readStream && writeStream) {
 		
-		inputStream = (bridge_stub NSInputStream *)readStream;
-		[inputStream retain_stub];
-		[inputStream setDelegate:self];
-		[inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-		[inputStream open];
-		
-		outputStream = (bridge_stub NSOutputStream *)writeStream;
-		[outputStream retain_stub];
-		[outputStream setDelegate:self];
-		[outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-		[outputStream open];
-        CFRelease(readStream);
-        CFRelease(writeStream);
-	}
+        inputStream = (bridge_transfer_stub NSInputStream*) readStream;
+        [inputStream setDelegate:self];
+        [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+        [inputStream open];
+        
+        outputStream = (bridge_transfer_stub NSOutputStream*) writeStream;
+        [outputStream setDelegate:self];
+        [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+        [outputStream open];
+    }
 	
-	self = [super initWithInputStream: inputStream outputStream: outputStream];
+    self = [super initWithInputStream: inputStream outputStream: outputStream];
 	
-	return self;
+    return self;
 }
 
+- (void)dealloc
+{
+    [mInput close];
+    [mOutput close];
+    [super dealloc_stub];
+}
 
 @end
 

@@ -62,11 +62,13 @@
 #define release_stub self
 #define dealloc_stub self
 #define bridge_stub __bridge
+#define bridge_transfer_stub __bridge_transfer
 #else
 #define retain_stub retain
 #define autorelease_stub autorelease
 #define release_stub release
 #define dealloc_stub dealloc
 #define bridge_stub
+#define bridge_transfer_stub
 #endif
 #endif
