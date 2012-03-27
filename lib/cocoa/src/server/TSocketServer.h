@@ -34,6 +34,7 @@ extern NSString * const kTSockerServer_TransportKey;
 
 @interface TSocketServer : NSObject {
   NSFileHandle * mSocketFileHandle;
+  BOOL isObserving;
   id <TProtocolFactory> mInputProtocolFactory;
   id <TProtocolFactory> mOutputProtocolFactory;
   id <TProcessorFactory> mProcessorFactory;

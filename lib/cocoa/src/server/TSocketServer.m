@@ -43,6 +43,7 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
 {
   self = [super init];
 
+  isObserving = NO;
   mInputProtocolFactory = [protocolFactory retain_stub];
   mOutputProtocolFactory = [protocolFactory retain_stub];
   mProcessorFactory = [processorFactory retain_stub];
@@ -89,6 +90,7 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
                                            selector: @selector(connectionAccepted:)
                                                name: NSFileHandleConnectionAcceptedNotification
                                              object: mSocketFileHandle];
+  isObserving = YES;
   
   // tell socket to listen
   [mSocketFileHandle acceptConnectionInBackgroundAndNotify];
@@ -99,8 +101,9 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
 }
 
 
-- (void) dealloc {
-  [[NSNotificationCenter defaultCenter] removeObject: self];
+- (void) dealloc
+{
+  if (isObserving) [[NSNotificationCenter defaultCenter] removeObject: self];
   [mInputProtocolFactory release_stub];
   [mOutputProtocolFactory release_stub];
   [mProcessorFactory release_stub];
