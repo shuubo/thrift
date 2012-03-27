@@ -25,7 +25,6 @@
 #import "TObjective-C.h"
 #import <sys/socket.h>
 #include <netinet/in.h>
-
 #include <stdio.h>
 #include <arpa/inet.h>
 
@@ -41,9 +40,18 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
     protocolFactory: (id <TProtocolFactory>) protocolFactory
    processorFactory: (id <TProcessorFactory>) processorFactory;
 {
-  self = [super init];
+  return [self initWithPort:port protocolFactory:protocolFactory processorFactory:processorFactory singleThreaded:NO];
+}
 
+- (id) initWithPort: (int) port
+protocolFactory: (id <TProtocolFactory>) protocolFactory
+processorFactory: (id <TProcessorFactory>) processorFactory
+singleThreaded: (BOOL)aBool;
+{
+  self = [super init];
+    
   isObserving = NO;
+  singleThreaded = aBool;
   mInputProtocolFactory = [protocolFactory retain_stub];
   mOutputProtocolFactory = [protocolFactory retain_stub];
   mProcessorFactory = [processorFactory retain_stub];
@@ -85,7 +93,8 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
   // wrap it in a file handle so we can get messages from it
   mSocketFileHandle = [[NSFileHandle alloc] initWithFileDescriptor: fd
                                                     closeOnDealloc: YES];
-    // register for notifications of accepted incoming connections
+
+  // register for notifications of accepted incoming connections
   [[NSNotificationCenter defaultCenter] addObserver: self
                                            selector: @selector(connectionAccepted:)
                                                name: NSFileHandleConnectionAcceptedNotification
@@ -117,9 +126,14 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
   NSFileHandle * socket = [[aNotification userInfo] objectForKey: NSFileHandleNotificationFileHandleItem];
 
   // now that we have a client connected, spin off a thread to handle activity
-  [NSThread detachNewThreadSelector: @selector(handleClientConnection:)
-                           toTarget: self
-                         withObject: socket];
+  if (!singleThreaded) {
+    [NSThread detachNewThreadSelector: @selector(handleClientConnection:)
+			     toTarget: self
+			   withObject: socket];
+  }
+  else {
+    [self handleClientConnection:socket];
+  }
 
   [[aNotification object] acceptConnectionInBackgroundAndNotify];
 }
@@ -144,7 +158,7 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
             } while (result);
         }
         @catch (TTransportException * te) {
-            //NSLog(@"Caught transport exception, abandoning client connection: %@", te);
+	  //NSLog(@"Caught transport exception, abandoning client connection: %@", te);
 	  [clientSocket closeFile];
         }
     }

@@ -35,10 +35,16 @@ extern NSString * const kTSockerServer_TransportKey;
 @interface TSocketServer : NSObject {
   NSFileHandle * mSocketFileHandle;
   BOOL isObserving;
+  BOOL singleThreaded;
   id <TProtocolFactory> mInputProtocolFactory;
   id <TProtocolFactory> mOutputProtocolFactory;
   id <TProcessorFactory> mProcessorFactory;
 }
+
+- (id) initWithPort: (int) port
+    protocolFactory: (id <TProtocolFactory>) protocolFactory
+   processorFactory: (id <TProcessorFactory>) processorFactory
+     singleThreaded: (BOOL)aBool;
 
 - (id) initWithPort: (int) port
     protocolFactory: (id <TProtocolFactory>) protocolFactory
