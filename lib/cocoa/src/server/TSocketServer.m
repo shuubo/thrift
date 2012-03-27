@@ -145,6 +145,7 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
         }
         @catch (TTransportException * te) {
             //NSLog(@"Caught transport exception, abandoning client connection: %@", te);
+	  [clientSocket closeFile];
         }
     }
 #else
@@ -166,6 +167,7 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
   }
   @catch (TTransportException * te) {
     //NSLog(@"Caught transport exception, abandoning client connection: %@", te);
+    [clientSocket closeFile];
   }
   [pool release];
 #endif
