@@ -26,6 +26,8 @@
 #import <sys/socket.h>
 #include <netinet/in.h>
 
+#include <stdio.h>
+#include <arpa/inet.h>
 
 
 NSString * const kTSocketServer_ClientConnectionFinishedForProcessorNotification = @"TSocketServer_ClientConnectionFinishedForProcessorNotification";
@@ -45,41 +47,43 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
   mOutputProtocolFactory = [protocolFactory retain_stub];
   mProcessorFactory = [processorFactory retain_stub];
 
-  // create a socket.
-  int fd = -1;
-  CFSocketRef socket = CFSocketCreate(kCFAllocatorDefault, PF_INET, SOCK_STREAM, IPPROTO_TCP, 0, NULL, NULL);
-  if (socket) {
-    CFSocketSetSocketFlags(socket, CFSocketGetSocketFlags(socket) & ~kCFSocketCloseOnInvalidate);
-    fd = CFSocketGetNative(socket);
-    int yes = 1;
-    setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&yes, sizeof(yes));
 
-    struct sockaddr_in addr;
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_len = sizeof(addr);
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    NSData *address = [NSData dataWithBytes:&addr length:sizeof(addr)];
-    if (CFSocketSetAddress(socket, (bridge_stub CFDataRef)address) != kCFSocketSuccess) {
-      CFSocketInvalidate(socket);
-      CFRelease(socket);
-      NSLog(@"*** Could not bind to address");
-      return nil;
-    }
-  } else {
-    NSLog(@"*** No server socket");
+  int err = 0;
+  int fd = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+  if (!fd) {
+    perror("socket");
     return nil;
   }
-  
+  int yes = 1;
+  err = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&yes, sizeof(yes));
+  if (err) {
+    perror("setsockopt");
+    return nil;
+  }
+    
+  struct sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_len = sizeof(addr);
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(port);
+  //addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    
+  err = bind(fd, (struct sockaddr*) &addr, sizeof(addr));
+  if (err) {
+    perror("bind");
+    return nil;
+  }
+    
+  err = listen(fd, 1);
+  if (err) {
+    perror("listen");
+    return nil;
+  }
+
   // wrap it in a file handle so we can get messages from it
   mSocketFileHandle = [[NSFileHandle alloc] initWithFileDescriptor: fd
                                                     closeOnDealloc: YES];
-  
-  // throw away our socket
-  CFSocketInvalidate(socket);
-  CFRelease(socket);
-  
     // register for notifications of accepted incoming connections
   [[NSNotificationCenter defaultCenter] addObserver: self
                                            selector: @selector(connectionAccepted:)
