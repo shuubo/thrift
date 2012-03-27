@@ -146,17 +146,6 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
         @catch (TTransportException * te) {
             //NSLog(@"Caught transport exception, abandoning client connection: %@", te);
         }
-        
-        NSNotification * n = [NSNotification notificationWithName: kTSocketServer_ClientConnectionFinishedForProcessorNotification
-                                                           object: self
-                                                         userInfo: [NSDictionary dictionaryWithObjectsAndKeys: 
-                                                                    processor,
-                                                                    kTSocketServer_ProcessorKey,
-                                                                    transport,
-                                                                    kTSockerServer_TransportKey,
-                                                                    nil]];
-        [[NSNotificationCenter defaultCenter] performSelectorOnMainThread: @selector(postNotification:) withObject: n waitUntilDone: YES];
-        
     }
 #else
   NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
@@ -178,17 +167,6 @@ NSString * const kTSockerServer_TransportKey = @"TSockerServer_Transport";
   @catch (TTransportException * te) {
     //NSLog(@"Caught transport exception, abandoning client connection: %@", te);
   }
-
-  NSNotification * n = [NSNotification notificationWithName: kTSocketServer_ClientConnectionFinishedForProcessorNotification
-                                                     object: self
-                                                   userInfo: [NSDictionary dictionaryWithObjectsAndKeys: 
-                                                              processor,
-                                                              kTSocketServer_ProcessorKey,
-                                                              transport,
-                                                              kTSockerServer_TransportKey,
-                                                              nil]];
-  [[NSNotificationCenter defaultCenter] performSelectorOnMainThread: @selector(postNotification:) withObject: n waitUntilDone: YES];
-  
   [pool release];
 #endif
 }
