@@ -48,7 +48,7 @@ enum {
 
 @protocol TProtocol <NSObject>
 
-- (id <TTransport>) transport;
+- (id <TTransport>) transport __attribute((ns_returns_retained));
 
 - (void) readMessageBeginReturningName: (NSString **) name
                                   type: (int *) type
